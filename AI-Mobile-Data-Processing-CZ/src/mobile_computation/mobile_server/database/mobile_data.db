@@ -1,1 +1,94 @@
  
+import sqlite3
+import psycopg2
+from pymongo import MongoClient
+
+# SQLite Database
+sqlite_connection = sqlite3.connect('mobile_data.db')
+sqlite_cursor = sqlite_connection.cursor()
+
+# Create SQLite table
+sqlite_cursor.execute('''
+    CREATE TABLE IF NOT EXISTS MobileData (
+        id INTEGER PRIMARY KEY,
+        device_name TEXT,
+        device_type TEXT,
+        os_version TEXT
+    )
+''')
+
+# PostgreSQL Database
+# Replace these variables with your PostgreSQL database credentials
+postgres_connection = psycopg2.connect(
+    dbname='your_dbname',
+    user='your_username',
+    password='your_password',
+    host='your_host',
+    port='your_port'
+)
+postgres_cursor = postgres_connection.cursor()
+
+# Create PostgreSQL table
+postgres_cursor.execute('''
+    CREATE TABLE IF NOT EXISTS MobileData (
+        id SERIAL PRIMARY KEY,
+        device_name VARCHAR(100),
+        device_type VARCHAR(100),
+        os_version VARCHAR(50)
+    )
+''')
+
+# MongoDB Database
+mongo_client = MongoClient('mongodb://localhost:27017/')
+mongo_db = mongo_client['mobile_data']
+mongo_collection = mongo_db['MobileData']
+
+# Create MongoDB collection
+# MongoDB creates collections automatically on insertion, so no explicit table creation required
+
+# Interact with databases
+# Insert data into SQLite
+sqlite_cursor.execute('''
+    INSERT INTO MobileData (device_name, device_type, os_version)
+    VALUES (?, ?, ?)
+''', ('Phone1', 'Smartphone', 'Android 11'))
+sqlite_connection.commit()
+
+# Insert data into PostgreSQL
+postgres_cursor.execute('''
+    INSERT INTO MobileData (device_name, device_type, os_version)
+    VALUES (%s, %s, %s)
+''', ('Phone2', 'Feature Phone', 'Nokia OS'))
+postgres_connection.commit()
+
+# Insert data into MongoDB
+mongo_collection.insert_one({
+    'device_name': 'Phone3',
+    'device_type': 'Tablet',
+    'os_version': 'iOS 15'
+})
+
+# Retrieve data from SQLite
+sqlite_cursor.execute('SELECT * FROM MobileData')
+sqlite_data = sqlite_cursor.fetchall()
+print("SQLite Data:")
+for row in sqlite_data:
+    print(row)
+
+# Retrieve data from PostgreSQL
+postgres_cursor.execute('SELECT * FROM MobileData')
+postgres_data = postgres_cursor.fetchall()
+print("\nPostgreSQL Data:")
+for row in postgres_data:
+    print(row)
+
+# Retrieve data from MongoDB
+mongo_data = mongo_collection.find()
+print("\nMongoDB Data:")
+for document in mongo_data:
+    print(document)
+
+# Close connections
+sqlite_connection.close()
+postgres_connection.close()
+mongo_client.close()
